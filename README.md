@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Quiz da Roleta</title>
   <style>
+    /* teu CSS original aqui, sem mexer */
     body {
       font-family: Arial, sans-serif;
       background-color: #f0f0f0;
@@ -22,14 +23,12 @@
       color: #000;
       max-width: 400px;
     }
-
     #roleta-container {
       position: relative;
       width: 200px;
       height: 200px;
       margin: 20px auto 30px auto;
     }
-
     #roleta {
       width: 200px;
       height: 200px;
@@ -41,7 +40,6 @@
       );
       transition: transform 3s ease-out;
     }
-
     #seta {
       position: absolute;
       top: -25px;
@@ -54,7 +52,6 @@
       border-top: 25px solid black;
       z-index: 10;
     }
-
     button {
       padding: 15px 30px;
       font-size: 20px;
@@ -65,16 +62,13 @@
       border-radius: 5px;
       margin: 10px;
     }
-
     button:hover:enabled {
       background-color: #45a049;
     }
-
     button:disabled {
       background-color: #888;
       cursor: not-allowed;
     }
-
     input {
       padding: 10px;
       margin: 10px;
@@ -84,7 +78,6 @@
       width: calc(100% - 24px);
       box-sizing: border-box;
     }
-
     #resposta {
       margin: 20px 0;
       padding: 10px;
@@ -92,13 +85,10 @@
       min-height: 30px;
       border-radius: 5px;
     }
-
     #pontuacao {
       margin: 20px 0;
       font-size: 18px;
     }
-
-    /* Estilo da tabela de classificação */
     #classificacao-container {
       max-width: 600px;
       margin: 20px auto;
@@ -109,28 +99,23 @@
       display: none;
       text-align: left;
     }
-
     #classificacao-container h2 {
       text-align: center;
       margin-bottom: 15px;
     }
-
     #tabela-classificacao {
       width: 100%;
       border-collapse: collapse;
     }
-
     #tabela-classificacao th, #tabela-classificacao td {
       border: 1px solid #ddd;
       padding: 8px;
       text-align: center;
     }
-
     #tabela-classificacao th {
       background-color: #4caf50;
       color: white;
     }
-
     #btn-voltar-jogo {
       background-color: #2196F3;
       margin-top: 15px;
@@ -226,35 +211,39 @@
       const tabelaJogadores = document.getElementById('tabela-jogadores');
       const btnVoltarJogo = document.getElementById('btn-voltar-jogo');
 
-      const SHEET_ENDPOINT = "https://script.google.com/macros/s/AKfycbyu4zbMbC7QIcAEgeNARdXG2oCkfXzI5bJyLSg1DEKIYDipnCTpoaBgFXuTeayErJT5SA/exec";
+      // Usa o teu link do App Script aqui
+      const SHEET_ENDPOINT = "https://script.google.com/macros/s/AKfycbyK4fjvS1ZKO_uWwLl4m99SozL6IZi3mbw_lHKiQm2o-_LzwiRtdpBUt3lrxwcuKH-4OA/exec";
 
       function atualizarPontuacao() {
         pontuacao.textContent = `Acertos: ${acertos} | Erros: ${erros}`;
       }
+function fimDeJogo() {
+  perguntaTexto.textContent = "Fim do jogo! Obrigado por jogar!";
+  botoesResposta.style.display = 'none';
+  roletaContainer.style.display = 'none';
+  classificacaoBtn.style.display = 'inline-block';
 
-      function fimDeJogo() {
-        perguntaTexto.textContent = "Fim do jogo! Obrigado por jogar!";
-        botoesResposta.style.display = 'none';
-        roletaContainer.style.display = 'none';
-        classificacaoBtn.style.display = 'inline-block';
+  // limpa o texto da resposta
+  respostaTexto.textContent = "";
+  respostaTexto.style.backgroundColor = "";
 
-        // Salvar jogador no localStorage
-        let jogadores = JSON.parse(localStorage.getItem("jogadores")) || [];
-        jogadores.push(jogador);
-        localStorage.setItem("jogadores", JSON.stringify(jogadores));
+  // Salvar jogador no localStorage
+  let jogadores = JSON.parse(localStorage.getItem("jogadores")) || [];
+  jogadores.push(jogador);
+  localStorage.setItem("jogadores", JSON.stringify(jogadores));
 
-        // Enviar dados para Google Sheets
-        fetch(SHEET_ENDPOINT, {
-          method: "POST",
-          mode: "no-cors",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify(jogador)
-        }).catch(err => {
-          console.log("Erro ao enviar dados para Google Sheets:", err);
-        });
-      }
+  // Enviar dados para Google Sheets
+  fetch(SHEET_ENDPOINT, {
+    method: "POST",
+    mode: "no-cors",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(jogador)
+  }).catch(err => {
+    console.log("Erro ao enviar dados para Google Sheets:", err);
+  });
+}
 
       function selecionarPerguntaAleatoria() {
         if (perguntasRestantes.length === 0 || perguntasRespondidas >= 10) {
@@ -285,110 +274,96 @@
         }, 3000);
       }
 
-      function verificarResposta(respostaEscolhida) {
-        if (!perguntaAtual || perguntasRespondidas >= 10) return;
-
-        // Bloquear botões para evitar múltiplos cliques
-        document.getElementById('btn-verdadeiro').disabled = true;
-        document.getElementById('btn-falso').disabled = true;
-
-        if (respostaEscolhida === perguntaAtual.resposta) {
-          respostaTexto.textContent = "Correto!";
-          respostaTexto.style.backgroundColor = "lightgreen";
-          acertos++;
-          jogador.acertos++;
-        } else {
-          respostaTexto.textContent = "Incorreto!";
-          respostaTexto.style.backgroundColor = "lightcoral";
-          erros++;
-          jogador.erros++;
-        }
-
-        perguntasRespondidas++;
-        atualizarPontuacao();
-
-        girarRoleta(() => {
-          respostaTexto.textContent = "";
-          respostaTexto.style.backgroundColor = "";
-          selecionarPerguntaAleatoria();
-
-          // Desbloquear botões para próxima pergunta
-          document.getElementById('btn-verdadeiro').disabled = false;
-          document.getElementById('btn-falso').disabled = false;
-        });
-      }
-
-      function mostrarClassificacao() {
-        // Esconder o jogo
-        jogoContainer.style.display = 'none';
-        classificacaoContainer.style.display = 'block';
-
-        // Limpar tabela antes de preencher
-        tabelaJogadores.innerHTML = '';
-
-        // Puxar os jogadores do localStorage
-        let jogadores = JSON.parse(localStorage.getItem("jogadores")) || [];
-
-        // Ordenar por acertos decrescente
-        jogadores.sort((a, b) => b.acertos - a.acertos);
-
-        // Preencher a tabela
-        jogadores.forEach(j => {
-          const tr = document.createElement('tr');
-          tr.innerHTML = `
-            <td>${j.nome}</td>
-            <td>${j.turma}</td>
-            <td>${j.ano}</td>
-            <td>${j.acertos}</td>
-            <td>${j.erros}</td>
-          `;
-          tabelaJogadores.appendChild(tr);
-        });
-      }
-
       salvarDadosBtn.addEventListener('click', () => {
         const nome = document.getElementById('nome').value.trim();
         const turma = document.getElementById('turma').value.trim();
         const ano = document.getElementById('ano').value.trim();
 
         if (!nome || !turma || !ano) {
-          alert("Por favor, preencha todos os dados do jogador.");
+          alert("Por favor, preencha todos os campos antes de começar!");
           return;
         }
 
-        jogador = {
-          nome,
-          turma,
-          ano,
-          acertos: 0,
-          erros: 0
-        };
-
-        // Inicializar jogo
-        perguntasRestantes = perguntas.slice();
+        jogador = { nome, turma, ano, acertos: 0, erros: 0 };
         acertos = 0;
         erros = 0;
         perguntasRespondidas = 0;
+        perguntasRestantes = [...perguntas];
+
         atualizarPontuacao();
 
         dadosJogadorDiv.style.display = 'none';
         salvarDadosBtn.style.display = 'none';
+
         roletaContainer.style.display = 'block';
-        botoesResposta.style.display = 'block';
+        classificacaoBtn.style.display = 'none';
 
         selecionarPerguntaAleatoria();
       });
 
-      document.getElementById('btn-verdadeiro').addEventListener('click', () => {
-        verificarResposta("Verdadeiro");
-      });
+      function responderPergunta(respostaUsuario) {
+        if (!perguntaAtual) return;
 
-      document.getElementById('btn-falso').addEventListener('click', () => {
-        verificarResposta("Falso");
-      });
+        if (respostaUsuario === perguntaAtual.resposta) {
+          acertos++;
+          respostaTexto.textContent = "Resposta correta!";
+          respostaTexto.style.backgroundColor = "#4CAF50";
+        } else {
+          erros++;
+          respostaTexto.textContent = "Resposta errada!";
+          respostaTexto.style.backgroundColor = "#f44336";
+        }
+
+        perguntasRespondidas++;
+        jogador.acertos = acertos;
+        jogador.erros = erros;
+
+        atualizarPontuacao();
+
+        botoesResposta.style.display = 'none';
+
+        // Girar roleta antes de próxima pergunta
+        girarRoleta(() => {
+          selecionarPerguntaAleatoria();
+        });
+      }
+
+      document.getElementById('btn-verdadeiro').addEventListener('click', () => responderPergunta("Verdadeiro"));
+      document.getElementById('btn-falso').addEventListener('click', () => responderPergunta("Falso"));
 
       classificacaoBtn.addEventListener('click', () => {
-        mostrarClassificacao();
+        // Mostrar tabela de classificação
+        jogoContainer.style.display = 'none';
+        classificacaoContainer.style.display = 'block';
+
+        // Limpa tabela
+        tabelaJogadores.innerHTML = "";
+
+        // Buscar classificação do Google Sheets
+        fetch(SHEET_ENDPOINT)
+          .then(res => res.json())
+          .then(data => {
+            if (data.jogadores && data.jogadores.length > 0) {
+              data.jogadores.sort((a, b) => b.acertos - a.acertos || a.erros - b.erros);
+              data.jogadores.forEach(jogador => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                  <td>${jogador.nome}</td>
+                  <td>${jogador.turma}</td>
+                  <td>${jogador.ano}</td>
+                  <td>${jogador.acertos}</td>
+                  <td>${jogador.erros}</td>
+                `;
+                tabelaJogadores.appendChild(tr);
+              });
+            } else {
+              tabelaJogadores.innerHTML = "<tr><td colspan='5'>Nenhum dado disponível</td></tr>";
+            }
+          })
+          .catch(err => {
+            tabelaJogadores.innerHTML = "<tr><td colspan='5'>Erro ao carregar dados</td></tr>";
+            console.error("Erro ao buscar classificação:", err);
+          });
       });
 
       btnVoltarJogo.addEventListener('click', () => {
